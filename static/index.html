@@ -1,11 +1,45 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-    <title>Flask-SocketIO Test</title>
-    <script src="//code.jquery.com/jquery-1.12.4.min.js" integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ=" crossorigin="anonymous"></script>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js" integrity="sha256-yr4fRk/GU1ehYJPAs8P4JlTgu0Hdsp4ZKrx8bDEDC3I=" crossorigin="anonymous"></script>
+    <style>
+        .overlay {
+            position: absolute;
+            top: 105px;
+            left: 740px;
+            opacity: .8;
+            z-index: 100;
+            padding: 20px;
+        }
+
+        body {
+            color: #fff;
+            font-size: 16px;
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            background-image: url('/static/otrpatch.png');
+            background-size: auto;
+            background-position: 50% 0;
+            height: 100%;
+            text-align: center;
+            background-color: black;
+            background-repeat: repeat;
+        }
+
+        body:before {
+            content: '';
+            display: inline-block;
+            vertical-align: middle;
+            height: 100%;
+        }
+    </style>
+    <title>otr</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.0.0/jquery.min.js"></script>
+<!--
+    <script src="/static/jquery-1.12.4.min.js"></script>
+    -->
+    <script src="/static/socket.io.js"></script>
+    <script src="/static/jquery.ripples.js"></script>
     <script type="text/javascript" charset="utf-8">
-        $(document).ready(function() {
+        $(document).ready(function () {
             // Use a "/test" namespace.
             // An application can open a connection on multiple namespaces, and
             // Socket.IO will multiplex all those connections on a single
@@ -21,7 +55,7 @@
             // Event handler for new connections.
             // The callback function is invoked when a connection with the
             // server is established.
-            socket.on('connect', function() {
+            socket.on('connect', function () {
                 socket.emit('my_event', {data: 'I\'m connected!'});
             });
 
@@ -29,8 +63,10 @@
             // The callback function is invoked whenever the server emits data
             // to the client. The data is then displayed in the "Received"
             // section of the page.
-            socket.on('my_response', function(msg, cb) {
-                $('#log').append('<br>' + $('<div/>').text('Received #' + msg.count + ': ' + msg.data).html());
+            socket.on('my_response', function (msg, cb) {
+                $('#log').text('Received #' + msg.count + ': ' + msg.data);
+                let rotation = 'rotate(' + (Math.random() * 200).toString() + 'deg)'
+                $('#pointer').css({'transform': rotation});
                 if (cb)
                     cb();
             });
@@ -40,7 +76,7 @@
             // round trip time is measured.
             var ping_pong_times = [];
             var start_time;
-            window.setInterval(function() {
+            window.setInterval(function () {
                 start_time = (new Date).getTime();
                 socket.emit('my_ping');
             }, 30000);
@@ -48,7 +84,7 @@
             // Handler for the "pong" message. When the pong is received, the
             // time from the ping is stored, and the average of the last 30
             // samples is average and displayed.
-            socket.on('my_pong', function() {
+            socket.on('my_pong', function () {
                 var latency = (new Date).getTime() - start_time;
                 ping_pong_times.push(latency);
                 ping_pong_times = ping_pong_times.slice(-30); // keep last 30 samples
@@ -61,39 +97,62 @@
             // Handlers for the different forms in the page.
             // These accept data from the user and send it to the server in a
             // variety of ways
-            $('form#emit').submit(function(event) {
+            $('form#emit').submit(function (event) {
                 socket.emit('my_event', {data: $('#emit_data').val()});
                 return false;
             });
-            $('form#broadcast').submit(function(event) {
+            $('form#broadcast').submit(function (event) {
                 socket.emit('my_broadcast_event', {data: $('#broadcast_data').val()});
                 return false;
             });
-            $('form#join').submit(function(event) {
+            $('form#join').submit(function (event) {
                 socket.emit('join', {room: $('#join_room').val()});
                 return false;
             });
-            $('form#leave').submit(function(event) {
+            $('form#leave').submit(function (event) {
                 socket.emit('leave', {room: $('#leave_room').val()});
                 return false;
             });
-            $('form#send_room').submit(function(event) {
+            $('form#send_room').submit(function (event) {
                 socket.emit('my_room_event', {room: $('#room_name').val(), data: $('#room_data').val()});
                 return false;
             });
-            $('form#close').submit(function(event) {
+            $('form#close').submit(function (event) {
                 socket.emit('close_room', {room: $('#close_room').val()});
                 return false;
             });
-            $('form#disconnect').submit(function(event) {
+            $('form#disconnect').submit(function (event) {
                 socket.emit('disconnect_request');
                 return false;
             });
         });
+        try {
+            $('body').ripples({
+                resolution: 512,
+                dropRadius: 20,
+                perturbance: 0.04,
+                imageURL: "/static/otrpatch.png",
+                interactive: false
+            });
+        }catch(e){
+            $('.error').show().text(e);
+        }
+        $('body').ripples('play');
+        setInterval(function () {
+            var $el = $('#body');
+            var x = Math.random() * $el.outerWidth();
+            var y = Math.random() * $el.outerHeight();
+            var dropRadius = 20;
+            var strength = 0.04 + Math.random() * 0.04;
+            $el.ripples('drop', x, y, dropRadius, strength);
+        }, 400);
     </script>
 </head>
-<body>
+<body style="">
+<center>
     <img src="/otr/dial.jpg">
-    <div id="log"></div>
+    <img id="pointer" class="overlay" src="/otr/pointer.png">
+    <div id="log" style="color: aliceblue"></div>
+</center>
 </body>
 </html>
