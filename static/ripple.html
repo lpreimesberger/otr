@@ -1,8 +1,17 @@
-<!DOCTYPE HTML>
+<!DOCTYPE html>
 <html>
 <head>
-    <style>
+<title>jQuery WebGL Ripples</title>
+<style>
 * { margin: 0; padding: 0; }
+        .overlay {
+            position: absolute;
+            top: 105px;
+            left: 740px;
+            opacity: .8;
+            z-index: 100;
+            padding: 20px;
+        }
 html {
 	height: 100%;
 }
@@ -28,6 +37,7 @@ main {
 	display: inline-block;
 	vertical-align: middle;
 	background: url(/static/dial.jpg);
+    opacity: .8;
 	padding:  100px;
 	max-width: 500px;
 	text-shadow: 0 1px 2px rgba(0,0,0,0.5);
@@ -94,17 +104,52 @@ code { font-size: 0.8em; display: inline; }
 .code-cbracket { font-weight:bold }
 .code-number { color:#ffcd22 }
 
-    </style>
-    <title>otr</title>
-    <script src="/static/jquery.min.js"></script>
-<!--
-    <script src="/static/jquery-1.12.4.min.js"></script>
-    -->
-    <script src="/static/socket.io.js"></script>
-    <script src="/static/jquery.ripples.js"></script>
-    <script type="text/javascript" charset="utf-8">
-        $(document).ready(function () {
-            // Use a "/test" namespace.
+</style>
+</head>
+<body>
+
+<main style="height: 440px; width: 500px;">
+	<header>
+		<h1></h1>
+		<h2></h2>
+	</header>
+
+</main>
+<div class="errorx"></div>
+<div class="error"></div>
+    <img id="pointer" class="overlay" src="/otr/pointer.png">
+    <div id="log" style="color: aliceblue"></div>
+
+</body>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.0.0/jquery.min.js"></script>
+<script src="/otr/jquery.ripples.js"></script>
+<script src="/static/socket.io.js"></script>
+<script>
+
+jQuery.fn.center = function () {
+    this.css("position","absolute");
+    this.css("top", Math.max(0, (($(window).height() - $(this).outerHeight()) / 2) +
+                                                $(window).scrollTop()) + "px");
+    this.css("left", Math.max(0, (($(window).width() - $(this).outerWidth()) / 2) +
+                                                $(window).scrollLeft()) + "px");
+    return this;
+}
+
+
+$(document).ready(function() {
+	try {
+		$('body').ripples({
+			resolution: 512,
+			dropRadius: 20, //px
+			perturbance: 0.04,
+		});
+		$('main').ripples({
+			resolution: 128,
+			dropRadius: 10, //px
+			perturbance: 0.04,
+		});
+		            // Use a "/test" namespace.
             // An application can open a connection on multiple namespaces, and
             // Socket.IO will multiplex all those connections on a single
             // physical channel. If you don't care about multiple channels, you
@@ -128,9 +173,17 @@ code { font-size: 0.8em; display: inline; }
             // to the client. The data is then displayed in the "Received"
             // section of the page.
             socket.on('my_response', function (msg, cb) {
+                console.log(msg.data);
+                console.log($('#log').text());
                 $('#log').text('Received #' + msg.count + ': ' + msg.data);
                 let rotation = 'rotate(' + (Math.random() * 200).toString() + 'deg)'
                 $('#pointer').css({'transform': rotation});
+                    $('#pointer').css("position","absolute");
+    $('#pointer').css("top", Math.max(0, (($(window).height() - 427) / 2) +
+                                                $(window).scrollTop()) + "px");
+    $('#pointer').css("left", Math.max(0, (($(window).width() - 414) / 2) +
+                                                $(window).scrollLeft()) + "px");
+
                 if (cb)
                     cb();
             });
@@ -189,18 +242,6 @@ code { font-size: 0.8em; display: inline; }
                 socket.emit('disconnect_request');
                 return false;
             });
-        });
-	try {
-		$('body').ripples({
-			resolution: 512,
-			dropRadius: 20, //px
-			perturbance: 0.04,
-		});
-		$('main').ripples({
-			resolution: 128,
-			dropRadius: 10, //px
-			perturbance: 0.04,
-		});
 	}
 	catch (e) {
 		$('.error').show().text(e);
@@ -216,18 +257,10 @@ code { font-size: 0.8em; display: inline; }
 		var strength = 0.04 + Math.random() * 0.04;
 		$el.ripples('drop', x, y, dropRadius, strength);
 	}, 4000);
-    </script>
-</head>
-<body style="">
-<main style="height: 400px; width: 500px;">
-	<header>
-		<h1></h1>
-		<h2></h2>
-	</header>
+	// center spinner
+    $('pointer').center();
+});
+</script>
 
-</main>
-<div class="error"></div>
-    <img id="pointer" class="overlay" src="/otr/pointer.png">
-    <div id="log" style="color: aliceblue"></div>
 </body>
 </html>

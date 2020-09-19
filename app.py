@@ -6,6 +6,8 @@ numbers from: https://freemusicarchive.org/music/The_Conet_Project
 #!/usr/bin/env python
 import os
 import random
+from pydub import AudioSegment
+from pydub.playback import play
 from threading import Lock
 from flask import Flask, render_template, session, request, \
     copy_current_request_context, send_from_directory
@@ -29,12 +31,14 @@ def background_thread():
     """Example of how to send server generated events to clients."""
     count = 0
     while True:
-        socketio.sleep(10)
+        socketio.sleep(2)
         count += 1
         play_next = random.choice(os.listdir(SOUND_DIRECTORY))
         socketio.emit('my_response',
                       {'data': play_next, 'count': count, "playing": play_next},
                       namespace='/test')
+        sound = AudioSegment.from_mp3(SOUND_DIRECTORY + "/" + play_next)
+        play(sound)
 
 
 @app.route('/otr/<the_file>')
