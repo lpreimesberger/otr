@@ -37,7 +37,7 @@ def background_thread():
         socketio.emit('my_response',
                       {'data': play_next, 'count': count, "playing": play_next},
                       namespace='/test')
-        sound = AudioSegment.from_mp3(SOUND_DIRECTORY + "/" + play_next)
+        sound = AudioSegment.from_wav(SOUND_DIRECTORY + "/" + play_next)
         play(sound)
 
 
