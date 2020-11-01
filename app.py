@@ -6,6 +6,8 @@ numbers from: https://freemusicarchive.org/music/The_Conet_Project
 #!/usr/bin/env python
 import os
 import random
+from time import sleep
+
 from pydub import AudioSegment
 from pydub.playback import play
 from threading import Lock
@@ -38,7 +40,8 @@ def background_thread():
                       {'data': play_next, 'count': count, "playing": play_next},
                       namespace='/test')
         sound = AudioSegment.from_wav(SOUND_DIRECTORY + "/" + play_next)
-        play(sound)
+#        play(sound)
+        socketio.sleep(5)
 
 
 @app.route('/otr/<the_file>')
