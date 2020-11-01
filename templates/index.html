@@ -94,6 +94,15 @@ code { font-size: 0.8em; display: inline; }
 .code-cbracket { font-weight:bold }
 .code-number { color:#ffcd22 }
 
+.overlay {
+                position: absolute;
+            top: 105px;
+            left: 740px;
+            opacity: .8;
+            z-index: 100;
+            padding: 20px;
+}
+
     </style>
     <title>otr</title>
     <script src="/static/jquery.min.js"></script>
@@ -128,9 +137,18 @@ code { font-size: 0.8em; display: inline; }
             // to the client. The data is then displayed in the "Received"
             // section of the page.
             socket.on('my_response', function (msg, cb) {
+                console.log('my_response');
+                const width = $('#pointer').width();
+                const height = $('#pointer').height();
+                const screen_width = $(window).width();
+                const screen_height = $(window).height();
+                console.log(width,height);
+                console.log(screen_width,screen_height);
                 $('#log').text('Received #' + msg.count + ': ' + msg.data);
                 let rotation = 'rotate(' + (Math.random() * 200).toString() + 'deg)'
                 $('#pointer').css({'transform': rotation});
+                $('#pointer').css({'top': (screen_height/2) - (200)});
+                $('#pointer').css({'left': (screen_width/2) - (200)});
                 if (cb)
                     cb();
             });
@@ -149,6 +167,7 @@ code { font-size: 0.8em; display: inline; }
             // time from the ping is stored, and the average of the last 30
             // samples is average and displayed.
             socket.on('my_pong', function () {
+                console.log('pong');
                 var latency = (new Date).getTime() - start_time;
                 ping_pong_times.push(latency);
                 ping_pong_times = ping_pong_times.slice(-30); // keep last 30 samples
@@ -209,6 +228,7 @@ code { font-size: 0.8em; display: inline; }
 
 	// Automatic drops
 	setInterval(function() {
+	    console.log('drops');
 		var $el = $('body');
 		var x = Math.random() * $el.outerWidth();
 		var y = Math.random() * $el.outerHeight();
@@ -219,7 +239,7 @@ code { font-size: 0.8em; display: inline; }
     </script>
 </head>
 <body style="">
-<main style="height: 400px; width: 500px;">
+<main style="height: 400px; width: 500px; z-index: -9">
 	<header>
 		<h1></h1>
 		<h2></h2>

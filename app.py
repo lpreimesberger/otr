@@ -36,11 +36,12 @@ def background_thread():
         socketio.sleep(2)
         count += 1
         play_next = random.choice(os.listdir(SOUND_DIRECTORY))
+        print("BACKGROUND FIRE")
         socketio.emit('my_response',
                       {'data': play_next, 'count': count, "playing": play_next},
                       namespace='/test')
         sound = AudioSegment.from_wav(SOUND_DIRECTORY + "/" + play_next)
-#        play(sound)
+        play(sound)
         socketio.sleep(5)
 
 
