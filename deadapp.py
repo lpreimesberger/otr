@@ -4,12 +4,14 @@ numbers from: https://freemusicarchive.org/music/The_Conet_Project
 
 """
 #!/usr/bin/env python
-import sys
+import atexit
 import os
 import random
+import threading
+import time
 from time import sleep
 
-import psutil
+import requests
 from pydub import AudioSegment
 from pydub.playback import play
 from threading import Lock
@@ -18,7 +20,7 @@ from flask import Flask, render_template, session, request, \
 from flask_socketio import SocketIO, emit, join_room, leave_room, \
     close_room, rooms, disconnect
 SOUND_DIRECTORY = "./static/numbers"
-
+"""
 # Set this variable to "threading", "eventlet" or "gevent" to test the
 # different async modes, or leave it set to None for the application to choose
 # the best option based on installed packages.
@@ -29,10 +31,27 @@ app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app, async_mode=async_mode)
 thread = None
 thread_lock = Lock()
+yourThread = threading.Thread()
+
+
+def interrupt():
+    global yourThread
+    yourThread.cancel()
+
+def player():
+    # wait until web starts
+    print("START PLAYER")
+    time.sleep(5)
+    while True:
+        print("boink")
+        play_next = random.choice(os.listdir(SOUND_DIRECTORY))
+        requests.get("http://127.0.0.1:5000/emit/{}".format(play_next))
+        print("Playing -> {}", play_next)
+        time.sleep(500)
 
 
 def background_thread():
-
+    """Example of how to send server generated events to clients."""
     count = 0
     while True:
         socketio.sleep(2)
@@ -142,10 +161,12 @@ def test_disconnect():
 
 
 if __name__ == '__main__':
-    procs = [p for p in psutil.process_iter() if 'python.exe' in p.name() and __file__ in p.cmdline()]
-    if len(procs) > 1:
-        print('Process is already running...')
-        sys.exit(1)
+    print("Launching background threads")
+    print("player...")
+    yourThread = threading.Thread(target=player)
+    yourThread.start()
+    atexit.register(interrupt)
+    print("web server launching!")
     socketio.run(app, debug=True)
 
 
@@ -154,7 +175,6 @@ import threading
 import atexit
 import time
 import os
-import psutil
 import random
 from flask import Flask, render_template, copy_current_request_context, jsonify, send_from_directory, session
 from flask_socketio import SocketIO, send, emit, join_room, leave_room, close_room, disconnect, rooms
@@ -271,8 +291,7 @@ def handle_text(json):
 
 @app.route('/')
 def hello_world():
-    return render_template('index.html', async_mode=socketio.async_mode)
-
+    return 'Hello World!'
 
 
 @app.route('/otr/<the_file>')
@@ -303,10 +322,6 @@ def player():
         time.sleep(500)
 
 
-procs = [p for p in psutil.process_iter() if 'python.exe' in p.name() and __file__ in p.cmdline()]
-if len(procs) > 1:
-    print('Process is already running...')
-    sys.exit(1)
 print("Launching background threads")
 print("player...")
 yourThread = threading.Thread(target=player)
